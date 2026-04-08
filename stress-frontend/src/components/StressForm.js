@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+
 // Destructure userId AND onResultReceived from props
 const StressForm = ({ userId, onResultReceived }) => {
     const [formData, setFormData] = useState({
@@ -38,8 +40,7 @@ const StressForm = ({ userId, onResultReceived }) => {
             };
 
             // Send data to your FastAPI backend
-            // Note: Using 127.0.0.1 is more stable for local development than 'localhost'
-            const response = await axios.post('http://127.0.0.1:8000/predict', payload);
+            const response = await axios.post(`${API_BASE_URL}/predict`, payload);
             
             // Update local state to show results on the screen
             setResult(response.data);

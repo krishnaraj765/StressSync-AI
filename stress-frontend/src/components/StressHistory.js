@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import StressChart from './StressChart'; // Import the chart component
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+
 const StressHistory = ({ userId }) => {
     const [historyData, setHistoryData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -11,7 +13,7 @@ const StressHistory = ({ userId }) => {
         const fetchHistory = async () => {
             try {
                 // Fetch data from your FastAPI history endpoint
-                const res = await axios.get(`http://127.0.0.1:8000/history/${userId}`);
+                const res = await axios.get(`${API_BASE_URL}/history/${userId}`);
                 setHistoryData(res.data);
             } catch (err) {
                 console.error("Error fetching history:", err);

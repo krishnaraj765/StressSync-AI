@@ -190,6 +190,31 @@ Voice Assistant Optional Read-Aloud
 
 ---
 
+## Render Deployment
+
+This repository is configured for Render using `render.yaml`.
+
+### Backend
+- Service root: `backend/`
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port ${PORT}`
+- Required environment variables:
+  - `DATABASE_URL`
+  - `MODEL_URL` (or add the model file to `backend/model/stress_model_with_smote.pkl`)
+
+### Frontend
+- Service root: `stress-frontend/`
+- Build command: `npm install && npm run build`
+- Publish directory: `build`
+- Required environment variable:
+  - `REACT_APP_API_BASE_URL` (set to your backend URL)
+
+### Local fallback
+- Frontend uses `http://127.0.0.1:8000` when `REACT_APP_API_BASE_URL` is not set.
+- Backend downloads the model file at startup if `MODEL_URL` is set.
+
+---
+
 ## API Documentation
 
 ### Base URL

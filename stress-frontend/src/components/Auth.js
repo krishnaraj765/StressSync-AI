@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+
 const Auth = ({ onLoginSuccess }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [isForgot, setIsForgot] = useState(false);
@@ -22,7 +24,7 @@ const Auth = ({ onLoginSuccess }) => {
         }
         
         try {
-            const res = await axios[method](`http://127.0.0.1:8000/${endpoint}`, formData);
+            const res = await axios[method](`${API_BASE_URL}/${endpoint}`, formData);
             
             if (isForgot) {
                 setSuccessMessage("Password updated! You can now login.");

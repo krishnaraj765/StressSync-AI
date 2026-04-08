@@ -5,6 +5,7 @@ from passlib.context import CryptContext # Added for security
 import pandas as pd
 import joblib
 import os # Added to help with environment variables
+import requests
 
 from database import engine, SessionLocal
 import models
@@ -33,8 +34,27 @@ def hash_password(password: str):
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-# 3. RELATIVE PATH: Works on local and cloud servers
-model = joblib.load("model/stress_model_with_smote.pkl")
+# 3. MODEL LOADING: allows Render deployment via MODEL_URL or model file in backend/model
+MODEL_DIR = "model"
+MODEL_FILENAME = "stress_model_with_smote.pkl"
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(MODEL_DIR, MODEL_FILENAME))
+MODEL_URL = os.getenv("MODEL_URL")
+
+if not os.path.exists(MODEL_PATH):
+    if not MODEL_URL:
+        raise RuntimeError(
+            f"Model file not found at {MODEL_PATH}. "
+            "Add the file to backend/model/ or set MODEL_URL in Render."
+        )
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    with requests.get(MODEL_URL, stream=True) as response:
+        response.raise_for_status()
+        with open(MODEL_PATH, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+model = joblib.load(MODEL_PATH)
 
 # Dependency to handle database sessions
 def get_db():
