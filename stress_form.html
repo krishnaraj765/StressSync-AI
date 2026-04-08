@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stress Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; color: #222; }
+        h1 { color: #2c3e50; }
+        label { display: block; margin: 12px 0 4px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { margin-top: 16px; padding: 12px 18px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #1d2a38; }
+        .result, .error { margin-top: 24px; padding: 18px; border-radius: 8px; }
+        .result { background: #eef7ff; border: 1px solid #b8d8ff; }
+        .error { background: #ffecec; border: 1px solid #f2c2c2; color: #8b0000; }
+        ul { padding-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Stress Checker</h1>
+    <p>Enter your metrics below and click <strong>Check Stress</strong>. The form sends values to the backend at <code>http://127.0.0.1:8000/predict</code>.</p>
+
+    <form id="stress-form">
+        <label for="bmi">BMI</label>
+        <input id="bmi" name="bmi" type="number" step="0.1" min="0" required />
+
+        <label for="resting_hr_bpm">Resting Heart Rate (BPM)</label>
+        <input id="resting_hr_bpm" name="resting_hr_bpm" type="number" step="0.1" min="0" required />
+
+        <label for="spo2_avg_pct">SpO2 Average (%)</label>
+        <input id="spo2_avg_pct" name="spo2_avg_pct" type="number" step="0.1" min="0" max="100" required />
+
+        <label for="sleep_duration_hours">Sleep Duration (hours)</label>
+        <input id="sleep_duration_hours" name="sleep_duration_hours" type="number" step="0.1" min="0" required />
+
+        <label for="mood">Mood (1-5 scale)</label>
+        <input id="mood" name="mood" type="number" step="1" min="1" max="5" required />
+
+        <label for="working_hours">Working Hours per Day</label>
+        <input id="working_hours" name="working_hours" type="number" step="0.1" min="0" required />
+
+        <label for="screen_time">Screen Time per Day (hours)</label>
+        <input id="screen_time" name="screen_time" type="number" step="0.1" min="0" required />
+
+        <button type="submit">Check Stress</button>
+    </form>
+
+    <div id="output"></div>
+
+    <script>
+        const form = document.getElementById('stress-form');
+        const output = document.getElementById('output');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            output.innerHTML = '';
+
+            const formData = new FormData(form);
+            const data = {
+                bmi: parseFloat(formData.get('bmi')),
+                resting_hr_bpm: parseFloat(formData.get('resting_hr_bpm')),
+                spo2_avg_pct: parseFloat(formData.get('spo2_avg_pct')),
+                sleep_duration_hours: parseFloat(formData.get('sleep_duration_hours')),
+                mood: parseInt(formData.get('mood'), 10),
+                working_hours: parseFloat(formData.get('working_hours')),
+                screen_time: parseFloat(formData.get('screen_time'))
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${text}`);
+                }
+
+                const result = await response.json();
+                output.innerHTML = `
+                    <div class="result">
+                        <h2>Stress Assessment Result</h2>
+                        <p><strong>Stress Level:</strong> ${result.stress_level}</p>
+                        <p><strong>Summary:</strong> ${result.summary}</p>
+                        <p><strong>Factors:</strong></p>
+                        <ul>${result.factors.map(item => `<li>${item}</li>`).join('')}</ul>
+                        <p><strong>Recommendations:</strong></p>
+                        <ul>${result.recommendations.map(item => `<li>${item}</li>`).join('')}</ul>
+                    </div>
+                `;
+            } catch (error) {
+                output.innerHTML = `<div class="error"><strong>Error:</strong> ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
