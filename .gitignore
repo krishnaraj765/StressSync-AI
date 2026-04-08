@@ -13,6 +13,7 @@ backend/*.py[cod]
 backend/venv/
 backend/.env
 backend/.pytest_cache/
+backend/model/*.pkl
 
 # --- OS Specific ---
 .DS_Store
