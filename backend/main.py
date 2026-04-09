@@ -16,7 +16,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Optional homepage (avoid 404 at root)
+# Homepage (avoid 404)
 @app.get("/")
 def home():
     return {"message": "StressSync AI Backend Running 🚀"}
@@ -65,7 +65,7 @@ def download_file_from_drive(url, dest_path):
             if chunk:
                 f.write(chunk)
 
-# Load model (FIXED WITH MMAP)
+# Load model (with mmap to reduce memory usage)
 def load_model():
     try:
         os.makedirs(MODEL_DIR, exist_ok=True)
@@ -78,7 +78,7 @@ def load_model():
             print("✅ Download complete")
 
         print("📦 Loading model with mmap...")
-        loaded_model = joblib.load(MODEL_PATH, mmap_mode='r')  # ✅ FIX
+        loaded_model = joblib.load(MODEL_PATH, mmap_mode='r')
         print("✅ Model loaded")
 
         return loaded_model
@@ -160,7 +160,7 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     return {"user_id": db_user.id}
 
-# 🚀 PREDICT API (LAZY + MMAP)
+# PREDICT API (lazy loading)
 @app.post("/predict")
 def predict(data: schemas.UserInput, db: Session = Depends(get_db)):
     global model
@@ -195,7 +195,7 @@ def predict(data: schemas.UserInput, db: Session = Depends(get_db)):
         "recommendations": recommendations
     }
 
-# History
+# History API
 @app.get("/history/{user_id}")
 def get_history(user_id: int, db: Session = Depends(get_db)):
     return db.query(models.UserData).filter(
