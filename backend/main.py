@@ -16,6 +16,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# Optional homepage (avoid 404 at root)
+@app.get("/")
+def home():
+    return {"message": "StressSync AI Backend Running 🚀"}
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
@@ -44,7 +49,7 @@ MODEL_URL = os.getenv("MODEL_URL", DEFAULT_MODEL_URL)
 
 model = None  # global model
 
-# Download model from Google Drive
+# Download model
 def download_file_from_drive(url, dest_path):
     session = requests.Session()
     response = session.get(url, stream=True)
@@ -60,7 +65,7 @@ def download_file_from_drive(url, dest_path):
             if chunk:
                 f.write(chunk)
 
-# Load model
+# Load model (FIXED WITH MMAP)
 def load_model():
     try:
         os.makedirs(MODEL_DIR, exist_ok=True)
@@ -72,8 +77,8 @@ def load_model():
             download_file_from_drive(MODEL_URL, MODEL_PATH)
             print("✅ Download complete")
 
-        print("📦 Loading model...")
-        loaded_model = joblib.load(MODEL_PATH)
+        print("📦 Loading model with mmap...")
+        loaded_model = joblib.load(MODEL_PATH, mmap_mode='r')  # ✅ FIX
         print("✅ Model loaded")
 
         return loaded_model
@@ -97,23 +102,23 @@ def generate_recommendations(data, stress_level):
 
     if data.resting_hr_bpm > 80:
         factors.append("Elevated heart rate")
-        recommendations.append("Try breathing exercises and light activity")
+        recommendations.append("Try breathing exercises")
 
     if data.spo2_avg_pct < 95:
         factors.append("Low oxygen level")
-        recommendations.append("Monitor health and consult doctor")
+        recommendations.append("Consult doctor")
 
     if data.sleep_duration_hours < 6.5:
         factors.append("Low sleep")
-        recommendations.append("Sleep at least 7–8 hours")
+        recommendations.append("Sleep more")
 
     if data.mood <= 2:
         factors.append("Low mood")
-        recommendations.append("Talk to someone or relax")
+        recommendations.append("Relax / talk to someone")
 
     if data.working_hours > 9:
         factors.append("Long work hours")
-        recommendations.append("Maintain work-life balance")
+        recommendations.append("Take breaks")
 
     if data.screen_time > 6:
         factors.append("High screen time")
@@ -155,12 +160,11 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     return {"user_id": db_user.id}
 
-# 🚀 FIXED PREDICT API (LAZY LOADING)
+# 🚀 PREDICT API (LAZY + MMAP)
 @app.post("/predict")
 def predict(data: schemas.UserInput, db: Session = Depends(get_db)):
     global model
 
-    # Lazy load model
     if model is None:
         print("⚡ Loading model on demand...")
         model = load_model()
@@ -180,7 +184,6 @@ def predict(data: schemas.UserInput, db: Session = Depends(get_db)):
 
     summary, factors, recommendations = generate_recommendations(data, stress_label)
 
-    # Save data
     record = models.UserData(**input_dict, stress_prediction=stress_label)
     db.add(record)
     db.commit()
@@ -192,7 +195,7 @@ def predict(data: schemas.UserInput, db: Session = Depends(get_db)):
         "recommendations": recommendations
     }
 
-# History API
+# History
 @app.get("/history/{user_id}")
 def get_history(user_id: int, db: Session = Depends(get_db)):
     return db.query(models.UserData).filter(
