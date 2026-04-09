@@ -210,6 +210,7 @@ This repository is configured for Render using `render.yaml`.
 - Publish directory: `build`
 - Required environment variable:
   - `REACT_APP_API_BASE_URL` (set to your backend URL)
+- Live deployment: `https://stresssyncai.onrender.com/`
 
 ### Local fallback
 - Frontend uses `http://127.0.0.1:8000` when `REACT_APP_API_BASE_URL` is not set.
@@ -227,6 +228,7 @@ http://127.0.0.1:8000
 ### Live Deployment
 - Backend: `https://stresssync-ai.onrender.com/`
 - API docs: `https://stresssync-ai.onrender.com/docs`
+- Frontend: `https://stresssyncai.onrender.com/`
 
 ### Endpoints
 
