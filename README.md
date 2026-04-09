@@ -201,6 +201,8 @@ This repository is configured for Render using `render.yaml`.
 - Required environment variables:
   - `DATABASE_URL`
   - `MODEL_URL` (or add the model file to `backend/model/stress_model_with_smote.pkl`)
+- Live deployment: `https://stresssync-ai.onrender.com/`
+- Public API docs: `https://stresssync-ai.onrender.com/docs`
 
 ### Frontend
 - Service root: `stress-frontend/`
@@ -221,6 +223,10 @@ This repository is configured for Render using `render.yaml`.
 ```
 http://127.0.0.1:8000
 ```
+
+### Live Deployment
+- Backend: `https://stresssync-ai.onrender.com/`
+- API docs: `https://stresssync-ai.onrender.com/docs`
 
 ### Endpoints
 
